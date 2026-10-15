@@ -1,0 +1,67 @@
+name: Release
+
+# Build a universal macOS .dmg and publish it to a GitHub release whenever a
+# version tag (e.g. v0.2.0) is pushed.
+on:
+  push:
+    tags:
+      - "v*"
+
+# The job needs to create the release and upload the .dmg to it.
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Install Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install Rust (Intel + Apple Silicon targets)
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-darwin,x86_64-apple-darwin
+
+      - name: Cache cargo build
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+
+      - name: Install frontend dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run tests
+        run: pnpm test
+
+      - name: Build and publish release
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tagName: ${{ github.ref_name }}
+          releaseName: "OSINT Graph ${{ github.ref_name }}"
+          releaseBody: |
+            Local OSINT link-analysis workbench for authorized recon. Universal macOS build (Intel + Apple Silicon).
+
+            ## Install
+            1. Download the `.dmg`, open it, drag the app to Applications.
+            2. The app is **not code-signed / notarized**, so Gatekeeper blocks the first launch. Either:
+               - Right-click the app → **Open** → **Open**, or
+               - Run: `xattr -dr com.apple.quarantine "/Applications/OSINT Graph.app"`
+
+            ## Notes
+            - API keys are stored in the macOS Keychain; project files (`.osint`) hold only the graph.
+          releaseDraft: false
+          prerelease: false
+          args: --target universal-apple-darwin
