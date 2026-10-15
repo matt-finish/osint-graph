@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>OSINT Graph</title>
+    <link rel="stylesheet" href="/src/styles.css" />
+  </head>
+  <body>
+    <header id="toolbar"></header>
+    <div id="workspace">
+      <aside id="palette"></aside>
+      <main id="graph-wrap">
+        <div id="graph"></div>
+        <div id="empty-hint">
+          <h2>Start a case</h2>
+          <p>Paste a domain, IP or URL in the quick-add box, or pick a type on the left.</p>
+          <p>Right-click an entity to run lookups. Select two entities and press <kbd>L</kbd> to link them.</p>
+        </div>
+      </main>
+      <aside id="inspector"></aside>
+    </div>
+    <footer id="status"></footer>
+    <div id="menu" class="menu" hidden></div>
+    <dialog id="dialog"></dialog>
+    <div id="toast" class="toast"></div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
