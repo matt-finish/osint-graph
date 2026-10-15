@@ -25,7 +25,9 @@ jobs:
       - name: Install Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          # 22.15+ required: undici 8 (a transitive dep) uses zstd bindings
+          # that older Node lacks. Matches the modern Node used locally.
+          node-version: 24
           cache: pnpm
 
       - name: Install Rust (Intel + Apple Silicon targets)
