@@ -24,6 +24,10 @@ export const PROVIDERS: Provider[] = [
   { id: "censys", name: "Censys Platform", signup: "https://platform.censys.io/account/api", notes: "Host services. Uses a Personal Access Token; organization ID is needed only on paid plans.", fields: [{ id: "pat", label: "Personal access token", secret: true }, { id: "orgId", label: "Organization ID", secret: false, optional: true }] },
   { id: "virustotal", name: "VirusTotal", signup: "https://www.virustotal.com/gui/my-apikey", notes: "Passive DNS, subdomains and reputation.", fields: [{ id: "apiKey", label: "API key", secret: true }] },
   { id: "securitytrails", name: "SecurityTrails", signup: "https://securitytrails.com/app/account/credentials", notes: "Subdomains and historical DNS.", fields: [{ id: "apiKey", label: "API key", secret: true }] },
+  { id: "hunter", name: "Hunter.io", signup: "https://hunter.io/api-keys", notes: "Discover employee email addresses for a company domain, and the org's email-address pattern. Verify a single address.", fields: [{ id: "apiKey", label: "API key", secret: true }] },
+  { id: "hibp", name: "Have I Been Pwned", signup: "https://haveibeenpwned.com/API/Key", notes: "Which known public breaches and pastes an email address appeared in. Awareness/exposure data — never returns passwords.", fields: [{ id: "apiKey", label: "API key", secret: true }] },
+  { id: "dehashed", name: "DeHashed", signup: "https://dehashed.com/profile", notes: "Credential-exposure records from public breaches by email, username, domain, name, phone or IP (API v2). For authorized assessments only.", fields: [{ id: "apiKey", label: "API key", secret: true }] },
+  { id: "intelx", name: "Intelligence X", signup: "https://intelx.io/account?tab=developer", notes: "Phonebook search: emails, subdomains and URLs tied to a selector. Free keys use https://free.intelx.io.", fields: [{ id: "apiKey", label: "API key", secret: true }, { id: "baseUrl", label: "API base URL", secret: false, default: "https://free.intelx.io" }] },
 ];
 
 const cache = new Map<string, string | null>();
@@ -69,10 +73,21 @@ export async function requireField(provider: string, field: string): Promise<str
 export interface Settings {
   usernameConcurrency: number;
   maxResultsPerTransform: number;
+  /** Mask leaked passwords from breach lookups when storing them on the graph. */
+  maskPasswords: boolean;
 }
 
 const SETTINGS_KEY = "osint-graph.settings";
-const DEFAULT_SETTINGS: Settings = { usernameConcurrency: 6, maxResultsPerTransform: 250 };
+const DEFAULT_SETTINGS: Settings = { usernameConcurrency: 6, maxResultsPerTransform: 250, maskPasswords: true };
+
+/** Reversibly-informative mask: keeps length and first/last char so analysts can
+ * spot password reuse without the raw value sitting in the project file. */
+export function maskSecret(value: string): string {
+  if (!value) return value;
+  if (value.length <= 2) return "•".repeat(value.length);
+  if (value.length <= 5) return value[0] + "•".repeat(value.length - 1);
+  return `${value[0]}${"•".repeat(value.length - 2)}${value[value.length - 1]} (${value.length})`;
+}
 
 export function loadSettings(): Settings {
   try {

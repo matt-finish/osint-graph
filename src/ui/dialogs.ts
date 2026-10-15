@@ -101,14 +101,17 @@ export function openSettings(onChange: () => void) {
   const s = loadSettings();
   const conc = h("input", { type: "number", min: 1, max: 20, value: s.usernameConcurrency });
   const max = h("input", { type: "number", min: 10, max: 2000, value: s.maxResultsPerTransform });
+  const mask = h("input", { type: "checkbox" }) as HTMLInputElement;
+  mask.checked = s.maskPasswords;
   const body = h("div", {},
     h("div", { class: "field" }, h("label", {}, "Max results added per lookup"), max),
     h("div", { class: "field" }, h("label", {}, "Username check concurrency"), conc),
-    h("p", { class: "empty" }, "API keys are stored in the macOS Keychain, not in project files. Project files (.osint) contain only the graph."),
+    h("div", { class: "field" }, h("label", { style: "display:flex;gap:8px;align-items:center" }, mask, "Mask leaked passwords from breach lookups")),
+    h("p", { class: "empty" }, "API keys are stored in the macOS Keychain, not in project files. Project files (.osint) contain only the graph. Breach lookups surface personal data — use them only within an authorized engagement."),
   );
   const save = h("button", { class: "primary", type: "button" }, "Save");
   save.addEventListener("click", () => {
-    const next: Settings = { usernameConcurrency: Math.max(1, Math.min(20, +conc.value || 6)), maxResultsPerTransform: Math.max(10, Math.min(2000, +max.value || 250)) };
+    const next: Settings = { usernameConcurrency: Math.max(1, Math.min(20, +conc.value || 6)), maxResultsPerTransform: Math.max(10, Math.min(2000, +max.value || 250)), maskPasswords: mask.checked };
     saveSettings(next);
     onChange();
     toast("Settings saved");

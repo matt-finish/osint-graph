@@ -122,3 +122,6 @@ window.addEventListener("beforeunload", (e) => {
 });
 
 renderStatus();
+
+// Dev-only hook for scripted screenshots / debugging; stripped from production builds.
+if (import.meta.env.DEV) (window as unknown as Record<string, unknown>).__osint = { store, graph, inspector, run };

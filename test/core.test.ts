@@ -1,5 +1,6 @@
 import { describe, expect, it, beforeEach } from "vitest";
 import { detectType, normaliseValue, registeredDomain } from "../src/entities";
+import { maskSecret } from "../src/keys";
 import { emptyProject } from "../src/model";
 import { Store } from "../src/store";
 import { phoneParts, scrapeHtml } from "../src/transforms/free";
@@ -20,6 +21,18 @@ describe("detectType", () => {
     ["@jdoe", "username"],
   ];
   it.each(cases)("%s -> %s", (input, type) => expect(detectType(input)).toBe(type));
+});
+
+describe("maskSecret", () => {
+  it("hides the middle but keeps length and ends", () => {
+    expect(maskSecret("password1")).toBe("p•••••••1 (9)");
+    expect(maskSecret("ab")).toBe("••");
+    expect(maskSecret("")).toBe("");
+  });
+  it("never leaks the raw value", () => {
+    const masked = maskSecret("hunter2secret");
+    expect(masked).not.toContain("unter2secre");
+  });
 });
 
 describe("registeredDomain", () => {
