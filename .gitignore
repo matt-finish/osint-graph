@@ -5,3 +5,4 @@ src-tauri/gen/
 *.osint
 *.mtgx
 .DS_Store
+*.dmg
